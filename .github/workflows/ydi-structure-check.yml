@@ -88,7 +88,50 @@ jobs:
           failed=0
 
           for term in "正本" "YDI-Holdings" "類 Merge"; do
-            if git grep -nF "$term" -- '*.md' ':!Log/**' ':!Playground/**' ':!Issues/**'; then
+            matches="$(git grep -nF "$term" -- '*.md' ':!Log/**' ':!Playground/**' ':!Issues/**' || true)"
+
+            # BOD.md contains the policy declaration that forbids this literal.
+            # Ignore only that exact declaration; other uses remain failures.
+            if [ "$term" = "正本" ] && [ -n "$matches" ]; then
+              matches="$(printf '%s\n' "$matches" | grep -vE '^BOD\.md:[0-9]+:\*\*「正本」という語は使わない。\*\*
+
+          if [ "$failed" -ne 0 ]; then
+            exit 1
+          fi
+
+          echo "廃止済み表現: 0"
+
+      - name: ユニットのエスカレを確認
+        if: steps.repo.outputs.kind == 'unit'
+        run: |
+          set -eu
+
+          test -f Issues.md
+
+          first_line="$(head -n 1 Issues.md)"
+          if [ "$first_line" != "# エスカレ" ]; then
+            echo "Issues.md がエスカレ用途になっていません。"
+            exit 1
+          fi
+
+          echo "エスカレ用 Issues.md: OK"
+
+      - name: サービス側に Issues.md がないことを確認
+        if: steps.repo.outputs.kind == 'service'
+        run: |
+          set -eu
+
+          if [ -e Issues.md ]; then
+            echo "サービスリポジトリに Issues.md が存在します。"
+            exit 1
+          fi
+
+          echo "サービス側 Issues.md: なし"
+ || true)"
+            fi
+
+            if [ -n "$matches" ]; then
+              printf '%s\n' "$matches"
               echo "廃止済み表現を検出: $term"
               failed=1
             fi
