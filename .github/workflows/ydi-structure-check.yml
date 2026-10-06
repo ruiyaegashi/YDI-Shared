@@ -88,16 +88,16 @@ jobs:
           failed=0
 
           for term in "正本" "YDI-Holdings" "類 Merge"; do
-            if [ "$term" = "正本" ] && [ -f BOD.md ]; then
-              if git grep -nF "$term" -- '*.md' ':!BOD.md' ':!Log/**' ':!Playground/**' ':!Issues/**'; then
+            if [ "$term" = "正本" ] && [ -f Document/Vice_Rules.md ]; then
+              if git grep -nF "$term" -- '*.md' ':!Document/Vice_Rules.md' ':!Log/**' ':!Playground/**' ':!Issues/**'; then
                 echo "廃止済み表現を検出: $term"
                 failed=1
               fi
 
-              bod_count="$(grep -F -c "$term" BOD.md || true)"
-              if [ "$bod_count" -ne 1 ] || ! grep -Fxq '**「正本」という語は使わない。**' BOD.md; then
-                grep -nF "$term" BOD.md || true
-                echo "BOD.md の禁止語Policy定義以外で廃止済み表現を検出: $term"
+              rule_count="$(grep -F -c "$term" Document/Vice_Rules.md || true)"
+              if [ "$rule_count" -ne 1 ] || ! grep -F -- "- 禁止語:" Document/Vice_Rules.md | grep -Fq "$term"; then
+                grep -nF "$term" Document/Vice_Rules.md || true
+                echo "Document/Vice_Rules.md の禁止語定義以外で廃止済み表現を検出: $term"
                 failed=1
               fi
             elif git grep -nF "$term" -- '*.md' ':!Log/**' ':!Playground/**' ':!Issues/**'; then
